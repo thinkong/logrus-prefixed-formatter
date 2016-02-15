@@ -97,6 +97,7 @@ func (f *TextFormatter) Format(entry *logrus.Entry) ([]byte, error) {
 func (f *TextFormatter) printColored(b *bytes.Buffer, entry *logrus.Entry, keys []string, timestampFormat string) {
 	levelColor := color.White
 	var levelText string
+	var debugInf string
 	switch entry.Level {
 	case logrus.InfoLevel:
 		//levelColor = ansi.Green
@@ -107,6 +108,12 @@ func (f *TextFormatter) printColored(b *bytes.Buffer, entry *logrus.Entry, keys 
 	case logrus.ErrorLevel, logrus.FatalLevel, logrus.PanicLevel:
 		//levelColor = ansi.Red
 	levelColor = color.Red
+	case logrus.DebugLevel:
+		pc, file, line,_ := runtime.Caller(6)
+       
+		callername := runtime.FuncForPC(pc).Name()
+		debugInf = fmt.Sprintf("[%s][%s][%d]", callername, file, line)
+		fallthrough
 	default:
 		//levelColor = ansi.Blue
 	levelColor = color.Blue
@@ -129,7 +136,7 @@ func (f *TextFormatter) printColored(b *bytes.Buffer, entry *logrus.Entry, keys 
 		s := fmt.Sprintf("%+5s [%04d] %s %s", levelText, ansi.LightBlack, miniTS(), prefix, entry.Message)
 		levelColor(s)
 	} else {
-		s := fmt.Sprintf("%+5s [%s] %s %s", levelText, entry.Time.Format(timestampFormat), prefix, entry.Message)
+		s := fmt.Sprintf("%+5s [%s] %s %s %s", levelText, entry.Time.Format(timestampFormat), debugInf, prefix, entry.Message)
 		levelColor(s)
 	}
 	for _, k := range keys {
