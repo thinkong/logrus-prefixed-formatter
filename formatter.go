@@ -10,6 +10,7 @@ import (
 
 	"github.com/Sirupsen/logrus"
 	"github.com/mgutz/ansi"
+	"github.com/thinkong/color"
 )
 
 const reset = ansi.Reset
@@ -94,17 +95,21 @@ func (f *TextFormatter) Format(entry *logrus.Entry) ([]byte, error) {
 }
 
 func (f *TextFormatter) printColored(b *bytes.Buffer, entry *logrus.Entry, keys []string, timestampFormat string) {
-	var levelColor string
+	levelColor := color.White
 	var levelText string
 	switch entry.Level {
 	case logrus.InfoLevel:
-		levelColor = ansi.Green
+		//levelColor = ansi.Green
+		levelColor = color.Green
 	case logrus.WarnLevel:
-		levelColor = ansi.Yellow
+		//levelColor = ansi.Yellow
+		levelColor = color.Yellow
 	case logrus.ErrorLevel, logrus.FatalLevel, logrus.PanicLevel:
-		levelColor = ansi.Red
+		//levelColor = ansi.Red
+	levelColor = color.Red
 	default:
-		levelColor = ansi.Blue
+		//levelColor = ansi.Blue
+	levelColor = color.Blue
 	}
 
 	if entry.Level != logrus.WarnLevel {
@@ -120,13 +125,17 @@ func (f *TextFormatter) printColored(b *bytes.Buffer, entry *logrus.Entry, keys 
 	}
 
 	if f.ShortTimestamp {
-		fmt.Fprintf(b, "%s[%04d]%s %s%+5s%s%s %s", ansi.LightBlack, miniTS(), reset, levelColor, levelText, reset, prefix, entry.Message)
+		//fmt.Fprintf(b, "%s[%04d]%s %s%+5s%s%s %s", ansi.LightBlack, miniTS(), reset, levelColor, levelText, reset, prefix, entry.Message)
+		s := fmt.Sprintf("%+5s [%04d] %s %s", levelText, ansi.LightBlack, miniTS(), prefix, entry.Message)
+		levelColor(s)
 	} else {
-		fmt.Fprintf(b, "%s[%s]%s %s%+5s%s%s %s", ansi.LightBlack, entry.Time.Format(timestampFormat), reset, levelColor, levelText, reset, prefix, entry.Message)
+		s := fmt.Sprintf("%+5s [%s] %s %s", levelText, entry.Time.Format(timestampFormat), prefix, entry.Message)
+		levelColor(s)
 	}
 	for _, k := range keys {
 		v := entry.Data[k]
-		fmt.Fprintf(b, " %s%s%s=%+v", levelColor, k, reset, v)
+		s := fmt.Sprintf(" %s=%+v",  k, v)
+		levelColor(s)
 	}
 }
 
